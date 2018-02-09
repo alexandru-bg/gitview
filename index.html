@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-
+        
 <head>
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -42,6 +42,11 @@
             position: absolute;
             top: 24px;
             right: 20px;
+        }
+        .login {
+            padding: 100px;
+            background-color: white;
+            margin: 100px;
         }
     </style>
 </head>
@@ -93,7 +98,7 @@
         </div>
 
 
-        <div v-if="!loggedIn">
+        <div v-if="!loggedIn" class="login">
             <h3>Please enter github username and password</h3>
 
             <input placeholder="username"
