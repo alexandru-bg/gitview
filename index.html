@@ -1,104 +1,99 @@
 <!DOCTYPE html>
 <html>
-        
+
 <head>
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet"
           href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script type="text/javascript"
+            src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript"
+            src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
     <script src="https://unpkg.com/github-api/dist/GitHub.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
     <style>
-        .mdl-progress {
-            width: 100%;
-        }
-
         .mdl-chip {
-            margin-right: 20px;
+            margin-right: 10px;
         }
 
         .mdl-card {
-            position: relative;
-            width: 80%;
-            min-height: auto;
-            margin-left: 10%;
-            margin-bottom: 20px;
+            width: 750px;
+            height: 320px;
+            margin-left: 20px;
         }
 
-        .avatar .mdl-chip {
-            background-color: transparent;
-            font-weight: bolder;
-        }
-
-        .avatar .mdl-chip__contact {
-            width: 100px;
-            height: 100px;
-            border-radius: 50px;
-        }
-
-        .avatar {
-            position: absolute;
-            top: 24px;
-            right: 20px;
-        }
         .login {
             padding: 100px;
             background-color: white;
             margin: 100px;
         }
+        .slick-cards {
+            margin-top: 10%;
+        }
+        .slick-track {
+            height: 400px;
+        }
     </style>
 </head>
 
 <body onclick="document.documentElement.webkitRequestFullscreen();">
-
     <div id="app"
          class="mdl-layout mdl-js-layout mdl-color--grey-100"
          v-cloak>
         <div v-if="loggedIn">
-            <div class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
-
             <div style="text-align: center;">
-                <h5>{{pullRequests.length}} open pull requests</h5>
+                <h5>
+                    <span v-for="(numberOfPr, label) in labels">
+                        <span style="color: lightgray;">{{label}}:</span> {{numberOfPr}}
+                    </span>
+                </h5>
             </div>
-            <div class="mdl-card mdl-shadow--2dp"
-                 v-for="pullRequest in pullRequests">
-
-                <div class="mdl-card__supporting-text">
-                    <h5>{{ pullRequest.title }}</h5>
-                    <h6>
-                        Created:
-                        <strong>{{ pullRequest.created_at | moment }}</strong>
-                        Updated:
-                        <strong>{{ pullRequest.updated_at | moment }}</strong>
-                    </h6>
-
-                    <div class="avatar">
-                        <span class="mdl-chip mdl-chip--contact mdl-chip--deletable">
-                            <img class="mdl-chip__contact"
-                                 v-bind:src="pullRequest.user.avatar_url">
-                            <span class="mdl-chip__text">{{pullRequest.user.login}}</span>
-                        </span>
-                    </div>
-
-                    <div>
-                        <span class="mdl-chip mdl-chip--contact"
-                              v-for="label in pullRequest.labels">
-                            <span v-bind:style="{ 'background-color': '#' + label.color}"
-                                  class="mdl-chip__contact mdl-color-text--white">
-                                {{label.name[0].toUpperCase()}}
+            <div class="slick-cards">
+                <div class="mdl-card mdl-shadow--2dp"
+                     v-for="pullRequest in pullRequests">
+                    <div class="mdl-card__supporting-text">
+                        <h5>{{ pullRequest.title }}</h5>
+                        <div style="width: 500px;">
+                            <span>
+                                <img class="mdl-chip__contact"
+                                     v-bind:src="pullRequest.user.avatar_url"></img>
+                                <span class="mdl-chip__text">{{pullRequest.user.login}}</span>
                             </span>
-                            <span class="mdl-chip__text"> {{label.name.toUpperCase()}}</span>
-                        </span>
+                        </div>
+                        <h6>
+                            <br> Created:
+                            <strong>{{ pullRequest.created_at | moment }}</strong>
+                            <br> Updated:
+                            <strong>{{ pullRequest.updated_at | moment }}</strong>
+                        </h6>
+                        <div>
+                            <span class="mdl-chip mdl-chip--contact"
+                                  v-for="label in pullRequest.labels">
+                                <span v-bind:style="{ 'background-color': '#' + label.color}"
+                                      class="mdl-chip__contact mdl-color-text--white">
+                                    {{label.name[0].toUpperCase()}}
+                                </span>
+                                <span class="mdl-chip__text"> {{label.name.toUpperCase()}}</span>
+                            </span>
+                        </div>
                     </div>
-                </div>
 
+                </div>
             </div>
+
         </div>
 
 
-        <div v-if="!loggedIn" class="login">
+        <div v-if="!loggedIn"
+             class="login">
             <h3>Please enter github username and password</h3>
 
             <input placeholder="username"
@@ -119,6 +114,8 @@
         const app = new Vue({
             el: '#app',
             data: {
+                labels: {},
+                slicked: false,
                 loggedIn: false,
                 updateIntervalMs: 10000,
                 timer: null,
@@ -135,9 +132,33 @@
                 }
             },
             created: function () {
-
+                // this.login();
             },
             methods: {
+                unslick: function () {
+                    if (this.slicked) {
+                        $('.slick-cards').slick('unslick');
+                    };
+                },
+                slick: function () {
+                    this.slicked = true;
+                    $('.slick-cards').slick({
+                        slidesToScroll: 1,
+                        draggable: false,
+                        accessibility: true,
+                        centerMode: true,
+                        variableWidth: true,
+                        slidesToShow: 1,
+                        speed: 1200,
+                        arrows: false,
+                        dots: false,
+                        infinite: true,
+                        autoplay: true,
+                        autoplaySpeed: 1800,
+                        pauseOnFocus: false,
+                        pauseOnHover: false
+                    });
+                },
                 login: function () {
                     this.loggedIn = true;
                     this.gh = new GitHub({
@@ -155,10 +176,26 @@
                     });
                     search.forIssues()
                         .then((response) => {
-                            console.log(response);
-                            this.pullRequests = response.data;
+                            if (JSON.stringify(this.pullRequests) !== JSON.stringify(response.data)) {
+                                this.pullRequests = response.data;
+                                this.labels = this.pullRequests.reduce((acc, cur) => {
+                                    cur.labels.forEach((label) => {
+                                        const name = label.name.toUpperCase();
+                                        if (acc[name]) {
+                                            acc[name]++;
+                                        } else {
+                                            acc[name] = 1;
+                                        }
+                                    })
+                                    return acc;
+                                }, {});
+                                this.$nextTick(function () {
+                                    this.unslick();
+                                    this.slick();
+                                });
+                            }
+                            this.timer = setTimeout(this.update, this.updateIntervalMs);
                         });
-                    this.timer = setTimeout(this.update, this.updateIntervalMs);
                 }
             }
         })
